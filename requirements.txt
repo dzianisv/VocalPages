@@ -1,5 +1,5 @@
 ebooklib
 beautifulsoup4
 bark
-soundfile
-pydub
+scipy
+numpy

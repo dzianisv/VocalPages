@@ -14,8 +14,17 @@ import scipy.io.wavfile as wavfile
 import numpy as np
 
 def sanitize_filename(name):
-    """Sanitize the topic title to create a valid filename."""
-    return re.sub(r'[\\/:"*?<>|]+', '', name).strip()
+    """Sanitize the topic title to create a valid filename.
+    
+    Removes invalid characters, collapses multiple spaces, and trims whitespace.
+    Returns a clean filename-safe string.
+    """
+    # Remove invalid chars and replace with single space
+    clean = re.sub(r'[\\/:"*?<>|]+', ' ', name)
+    # Collapse multiple spaces and trim
+    clean = ' '.join(clean.split())
+    return clean
+
 
 def main():
     parser = argparse.ArgumentParser(description='Convert EPUB topics to audio using Bark TTS.')
