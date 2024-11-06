@@ -10,8 +10,8 @@ from ebooklib import ITEM_DOCUMENT
 
 from bs4 import BeautifulSoup
 from bark import generate_audio, SAMPLE_RATE, preload_models
-import soundfile as sf
-from pydub import AudioSegment
+import scipy.io.wavfile as wavfile
+import numpy as np
 
 def sanitize_filename(name):
     """Sanitize the topic title to create a valid filename."""
@@ -58,14 +58,8 @@ def main():
                 try:
                     preload_models()
 
-                    audio_array = generate_audio(paragraph)
-                    audio_segment = AudioSegment(
-                        audio_array.tobytes(),
-                        frame_rate=SAMPLE_RATE,
-                        sample_width=audio_array.dtype.itemsize,
-                        channels=1
-                    )
-                    audio_segments.append(audio_segment)
+                    audio_array = generate_audio(paragraph, history_prompt="v2/en_speaker_1")
+                    audio_segments.append(audio_array)
                 except Exception as e:
                     print(f'    Error generating audio for paragraph {idx}: {e}')
 
@@ -74,9 +68,10 @@ def main():
                 continue
 
             # Combine all audio segments into one file
-            combined_audio = sum(audio_segments)
+            combined_audio = np.concatenate([segment for segment in audio_segments])
             output_file = f'{title}.wav'
-            combined_audio.export(output_file, format='wav')
+            wavfile.write(output_file, SAMPLE_RATE, combined_audio)
+            
             print(f'  Audio file created: {output_file}')
 
 if __name__ == '__main__':
