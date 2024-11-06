@@ -14,7 +14,7 @@ import numpy as np
 from tts.bark_engine import BarkEngine
 from tts.coqui_engine import CoquiEngine
 
-SAMPLE_RATE = 24000  # Move this to a config file in a real project
+SAMPLE_RATE = 24000
 
 def sanitize_filename(name):
     """Sanitize the topic title to create a valid filename."""
@@ -27,6 +27,7 @@ def main():
     parser.add_argument('epub_file', help='Path to the .epub file to process.')
     parser.add_argument('--engine', type=str, choices=['bark', 'coqui'], default='bark', help='TTS engine to use')
     parser.add_argument('--voice', type=str, default='v2/en_speaker_6', help='The voice to use for speech synthesis.')
+    parser.add_argument('--chapter', type=int, help='Process only the specified chapter number')
     args = parser.parse_args()
 
     # Initialize TTS engine
@@ -46,6 +47,14 @@ def main():
 
     for item in book.get_items():
         if item.get_type() == ITEM_DOCUMENT:
+            # Skip chapters before the requested one
+            if args.chapter and topic_count < args.chapter:
+                topic_count += 1
+                continue
+            # Skip chapters after the requested one
+            if args.chapter and topic_count > args.chapter:
+                break
+
             content = item.get_content().decode('utf-8')
             soup = BeautifulSoup(content, 'html.parser')
 
