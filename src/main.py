@@ -6,6 +6,8 @@ import argparse
 import re
 
 from ebooklib import epub
+from ebooklib import ITEM_DOCUMENT
+
 from bs4 import BeautifulSoup
 from bark import generate_audio, SAMPLE_RATE, preload_models
 import soundfile as sf
@@ -25,23 +27,18 @@ def main():
         print(f'Error: File "{epub_file}" does not exist.')
         sys.exit(1)
 
-    # Preload Bark models
-    print('Loading Bark TTS models...')
-    preload_models()
-
-    # Load the EPUB file
     book = epub.read_epub(epub_file)
-
     # Process each document item (chapter/topic) in the EPUB
     for item in book.get_items():
-        if item.get_type() == epub.ITEM_DOCUMENT:
+        if item.get_type() == ITEM_DOCUMENT:
             # Extract content and parse with BeautifulSoup
             content = item.get_content().decode('utf-8')
             soup = BeautifulSoup(content, 'html.parser')
 
             # Get the topic title
-            title_tag = soup.find(['h1', 'title'])
+            title_tag = soup.find(['h1', 'title', 'p'])
             if not title_tag:
+                print('No title found in this topic.')
                 continue  # Skip if no title is found
             title = sanitize_filename(title_tag.get_text())
             if not title:
@@ -59,6 +56,8 @@ def main():
             for idx, paragraph in enumerate(paragraphs, start=1):
                 print(f'  Generating audio for paragraph {idx} of {len(paragraphs)}...')
                 try:
+                    preload_models()
+
                     audio_array = generate_audio(paragraph)
                     audio_segment = AudioSegment(
                         audio_array.tobytes(),
