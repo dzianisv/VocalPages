@@ -4,6 +4,7 @@ import sys
 import os
 import argparse
 import re
+import subprocess
 
 from ebooklib import epub
 from ebooklib import ITEM_DOCUMENT
@@ -22,12 +23,31 @@ def sanitize_filename(name):
     clean = ' '.join(clean.split())
     return clean
 
+def generate_spectrogram_video(audio_file):
+    """Generate a video with audio spectrogram visualization."""
+    output_video = audio_file.replace('.wav', '.mp4')
+    ffmpeg_command = [
+        'ffmpeg', '-y',
+        '-i', audio_file,
+        '-filter_complex', '[0:a]showspectrum=s=1920x1080:mode=combined:color=rainbow:scale=log:slide=scroll:saturation=4,format=yuv420p[v]',
+        '-map', '[v]',
+        '-map', '0:a',
+        '-c:v', 'libx264',
+        '-c:a', 'aac',
+        '-b:a', '192k',
+        '-pix_fmt', 'yuv420p',
+        output_video
+    ]
+    subprocess.run(ffmpeg_command)
+    return output_video
+
 def main():
     parser = argparse.ArgumentParser(description='Convert EPUB topics to audio using TTS.')
     parser.add_argument('epub_file', help='Path to the .epub file to process.')
     parser.add_argument('--engine', type=str, choices=['bark', 'coqui'], default='bark', help='TTS engine to use')
     parser.add_argument('--voice', type=str, default='v2/en_speaker_6', help='The voice to use for speech synthesis.')
     parser.add_argument('--chapter', type=int, help='Process only the specified chapter number')
+    parser.add_argument('--animation', action='store_true', help='Generate video with audio spectrogram')
     args = parser.parse_args()
 
     # Initialize TTS engine
@@ -47,11 +67,9 @@ def main():
 
     for item in book.get_items():
         if item.get_type() == ITEM_DOCUMENT:
-            # Skip chapters before the requested one
             if args.chapter and topic_count < args.chapter:
                 topic_count += 1
                 continue
-            # Skip chapters after the requested one
             if args.chapter and topic_count > args.chapter:
                 break
 
@@ -88,8 +106,13 @@ def main():
             combined_audio = np.concatenate([segment for segment in audio_segments])
             output_file = f'{topic_count}-{title}.wav'
             wavfile.write(output_file, SAMPLE_RATE, combined_audio)
-            topic_count += 1
             
+            if args.animation:
+                print(f'  Generating spectrogram video...')
+                video_file = generate_spectrogram_video(output_file)
+                print(f'  Video file created: {video_file}')
+            
+            topic_count += 1
             print(f'  Audio file created: {output_file}')
 
 if __name__ == '__main__':
