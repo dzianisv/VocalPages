@@ -29,6 +29,7 @@ def sanitize_filename(name):
 def main():
     parser = argparse.ArgumentParser(description='Convert EPUB topics to audio using Bark TTS.')
     parser.add_argument('epub_file', help='Path to the .epub file to process.')
+    parser.add_argument('--voice', type=str, default='v2/en_speaker_6', help='The voice to use for speech synthesis.')
     args = parser.parse_args()
     epub_file = args.epub_file
 
@@ -69,7 +70,7 @@ def main():
                 try:
                     preload_models()
 
-                    audio_array = generate_audio(paragraph, history_prompt="v2/en_speaker_6")
+                    audio_array = generate_audio(paragraph, history_prompt=args.voice)
                     audio_segments.append(audio_array)
                 except Exception as e:
                     print(f'    Error generating audio for paragraph {idx}: {e}')
