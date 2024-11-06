@@ -12,8 +12,6 @@ from bs4 import BeautifulSoup
 import scipy.io.wavfile as wavfile
 import numpy as np
 
-from tts.bark_engine import BarkEngine
-from tts.coqui_engine import CoquiEngine
 
 SAMPLE_RATE = 24000
 
@@ -45,15 +43,17 @@ def main():
     parser = argparse.ArgumentParser(description='Convert EPUB topics to audio using TTS.')
     parser.add_argument('epub_file', help='Path to the .epub file to process.')
     parser.add_argument('--engine', type=str, choices=['bark', 'coqui'], default='bark', help='TTS engine to use')
-    parser.add_argument('--voice', type=str, default='v2/en_speaker_6', help='The voice to use for speech synthesis.')
+    parser.add_argument('--voice', type=str, default=None, help='The voice to use for speech synthesis.')
     parser.add_argument('--chapter', type=int, help='Process only the specified chapter number')
     parser.add_argument('--animation', action='store_true', help='Generate video with audio spectrogram')
     args = parser.parse_args()
 
     # Initialize TTS engine
     if args.engine == 'bark':
+        from tts.bark_engine import BarkEngine
         tts_engine = BarkEngine(voice=args.voice)
     else:
+        from tts.coqui_engine import CoquiEngine
         tts_engine = CoquiEngine()
     
     tts_engine.initialize()
@@ -83,7 +83,7 @@ def main():
             title = sanitize_filename(title_tag.get_text())
             if not title:
                 continue
-            print(f'\nProcessing topic: {title}')
+            print(f'📕 Processing chapter: {title}')
 
             paragraphs = [p.get_text().strip() for p in soup.find_all('p') if p.get_text().strip()]
             if not paragraphs:
@@ -92,7 +92,8 @@ def main():
 
             audio_segments = []
             for idx, paragraph in enumerate(paragraphs, start=1):
-                print(f'  Generating audio for paragraph {idx} of {len(paragraphs)}...')
+                print(f'  📄 Generating audio for paragraph {idx} of {len(paragraphs)}...')
+                print('   📄 Paragraph:', paragraph)
                 try:
                     audio_array = tts_engine.generate_audio(paragraph)
                     audio_segments.append(audio_array)
