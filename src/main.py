@@ -38,6 +38,8 @@ def main():
 
     book = epub.read_epub(epub_file)
     # Process each document item (chapter/topic) in the EPUB
+    topic_count = 1
+
     for item in book.get_items():
         if item.get_type() == ITEM_DOCUMENT:
             # Extract content and parse with BeautifulSoup
@@ -67,7 +69,7 @@ def main():
                 try:
                     preload_models()
 
-                    audio_array = generate_audio(paragraph, history_prompt="v2/en_speaker_1")
+                    audio_array = generate_audio(paragraph, history_prompt="v2/en_speaker_6")
                     audio_segments.append(audio_array)
                 except Exception as e:
                     print(f'    Error generating audio for paragraph {idx}: {e}')
@@ -78,8 +80,9 @@ def main():
 
             # Combine all audio segments into one file
             combined_audio = np.concatenate([segment for segment in audio_segments])
-            output_file = f'{title}.wav'
+            output_file = f'{topic_count}-{title}.wav'
             wavfile.write(output_file, SAMPLE_RATE, combined_audio)
+            topic_count += 1
             
             print(f'  Audio file created: {output_file}')
 
