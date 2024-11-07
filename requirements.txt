@@ -3,4 +3,4 @@ beautifulsoup4
 bark
 scipy
 numpy
-TTS # https://github.com/coqui-ai/TTS
+# TTS # https://github.com/coqui-ai/TTS
