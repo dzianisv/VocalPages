@@ -97,7 +97,7 @@ def main():
                 try:
                     audio_array = tts_engine.generate_audio(paragraph)
                     audio_segments.append(audio_array)
-                    output_file = f'{topic_count}-{title}-{paragraph[:min(128, len(paragraph))]}.wav'
+                    output_file = f'{topic_count}-{title}-{idx}.wav'
                     wavfile.write(output_file, SAMPLE_RATE, audio_array)
                 except Exception as e:
                     print(f'    Error generating audio for paragraph {idx}: {e}')
