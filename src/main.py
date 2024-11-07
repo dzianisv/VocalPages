@@ -43,7 +43,7 @@ def main():
     parser = argparse.ArgumentParser(description='Convert EPUB topics to audio using TTS.')
     parser.add_argument('epub_file', help='Path to the .epub file to process.')
     parser.add_argument('--tts', type=str, choices=['bark', 'coqui'], default='bark', help='TTS engine to use')
-    parser.add_argument('--voice', type=str, default=None, help='The voice to use for speech synthesis.')
+    parser.add_argument('--voice', type=str, default='v2/en_speaker_3', help='The voice to use for speech synthesis. Full list https://suno-ai.notion.site/8b8e8749ed514b0cbf3f699013548683?v=bc67cff786b04b50b3ceb756fd05f68c')
     parser.add_argument('--chapter', type=int, help='Process only the specified chapter number')
     parser.add_argument('--animation', action='store_true', help='Generate video with audio spectrogram')
     args = parser.parse_args()
